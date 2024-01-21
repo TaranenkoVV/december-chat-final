@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientHandler {
+
     private Server server;
     private Socket socket;
     private DataOutputStream out;
@@ -42,11 +43,36 @@ public class ClientHandler {
                 }
                 if (message.startsWith("/w ")) {
                     // TODO homework chat part 1
+                    String[] parts = new String[3];
+                    parts = message.split(" ", 3);
+                    if (parts.length == 3) {
+                        String receiverUsername = parts[1].trim();
+                        String userMessage = parts[2];
+                        server.sendPrivateMessage(this, receiverUsername, userMessage);
+                    }
+                    continue;
+                }
+                if (message.startsWith("/kick ")) {
+                    // TODO homework chat part 2
+                    if (server.getUserService().isUserAdmin(username)) {
+                        String[] parts = new String[2];
+                        parts = message.split(" ", 2);
+                        if (parts.length == 2) {
+                            String kickUsername = parts[1].trim();
+                            if (server.kickUser(this, kickUsername)) {
+                                server.broadcastMessage("Пользователь " + kickUsername + " отключен администратором");
+                            }
+                        }
+                    } else {
+                        sendMessage("СЕРВЕР: у вас недостаточно прав для отключения пользователей");
+                    }
+                    continue;
                 }
             }
             server.broadcastMessage(username + ": " + message);
         }
     }
+
 
     public void sendMessage(String message) {
         try {

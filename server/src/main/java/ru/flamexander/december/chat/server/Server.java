@@ -64,6 +64,36 @@ public class Server {
     }
 
     public synchronized void sendPrivateMessage(ClientHandler sender, String receiverUsername, String message) {
-        // TODO homework
+        // TODO homework chat part 1
+        boolean receiverNotFound = true;
+        for (ClientHandler clientHandler : clients) {
+            if(clientHandler.getUsername().equals(receiverUsername)) {
+                clientHandler.sendMessage("Private Message from " + sender.getUsername() + " to " + receiverUsername + ": " + message);
+                sender.sendMessage("Private Message from " + sender.getUsername() + " to " + receiverUsername + ": " + message);
+                receiverNotFound = false;
+            }
+        }
+
+        if (receiverNotFound) {
+            sender.sendMessage("User: " + receiverUsername + " not found");
+        }
+    }
+
+    public synchronized boolean kickUser(ClientHandler sender, String kickUsername) {
+        // TODO homework chat part 2
+        for (ClientHandler clientHandler : clients) {
+            if (clientHandler.getUsername().equals(kickUsername)) {
+
+                clientHandler.sendMessage("СЕРВЕР: администратор отключил вас из чата");
+                clientHandler.sendMessage("/kickedout");
+
+                clients.remove(clientHandler);
+                unsubscribe(clientHandler);
+
+                return true;
+            }
+        }
+        sender.sendMessage("Пользователь " + kickUsername + " не найден");
+        return false;
     }
 }
