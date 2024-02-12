@@ -3,11 +3,15 @@ package ru.flamexander.december.chat.server;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Server {
+
     private int port;
+    private Connection connection;
     private List<ClientHandler> clients;
     private UserService userService;
 
@@ -15,15 +19,19 @@ public class Server {
         return userService;
     }
 
-    public Server(int port) {
+    public Server(int port, Connection connection) {
         this.port = port;
+        this.connection = connection;
         this.clients = new ArrayList<>();
     }
 
     public void start() {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.printf("Сервер запущен на порту %d. Ожидание подключения клиентов\n", port);
-            userService = new InMemoryUserService();
+
+            //userService = new InMemoryUserService();
+            userService = new InJDBCUserService(connection);
+
             System.out.println("Запущен сервис для работы с пользователями");
             while (true) {
                 Socket socket = serverSocket.accept();
@@ -33,7 +41,7 @@ public class Server {
                     System.out.println("Не удалось подключить клиента");
                 }
             }
-        } catch (IOException e) {
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
     }
@@ -67,9 +75,11 @@ public class Server {
         // TODO homework chat part 1
         boolean receiverNotFound = true;
         for (ClientHandler clientHandler : clients) {
-            if(clientHandler.getUsername().equals(receiverUsername)) {
-                clientHandler.sendMessage("Private Message from " + sender.getUsername() + " to " + receiverUsername + ": " + message);
-                sender.sendMessage("Private Message from " + sender.getUsername() + " to " + receiverUsername + ": " + message);
+            if (clientHandler.getUsername().equals(receiverUsername)) {
+                clientHandler.sendMessage(
+                        "Private Message from " + sender.getUsername() + " to " + receiverUsername + ": " + message);
+                sender.sendMessage(
+                        "Private Message from " + sender.getUsername() + " to " + receiverUsername + ": " + message);
                 receiverNotFound = false;
             }
         }
