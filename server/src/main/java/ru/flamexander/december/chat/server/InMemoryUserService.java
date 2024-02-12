@@ -6,14 +6,18 @@ import java.util.List;
 
 public class InMemoryUserService implements UserService {
     class User {
+        static final String ROLE_ADMIN = "ADMIN";
+        static final String ROLE_USER = "USER";
         private String login;
         private String password;
         private String username;
+        private String role;
 
-        public User(String login, String password, String username) {
+        public User(String login, String password, String username, String role) {
             this.login = login;
             this.password = password;
             this.username = username;
+            this.role = role;
         }
     }
 
@@ -21,9 +25,9 @@ public class InMemoryUserService implements UserService {
 
     public InMemoryUserService() {
         this.users = new ArrayList<>(Arrays.asList(
-                new User("login1", "pass1", "user1"),
-                new User("login2", "pass2", "user2"),
-                new User("login3", "pass3", "user3")
+                new User("login1", "pass1", "admin", User.ROLE_ADMIN),
+                new User("login2", "pass2", "user2", User.ROLE_USER),
+                new User("login3", "pass3", "user3", User.ROLE_USER)
         ));
     }
 
@@ -39,7 +43,7 @@ public class InMemoryUserService implements UserService {
 
     @Override
     public void createNewUser(String login, String password, String username) {
-        users.add(new User(login, password, username));
+        users.add(new User(login, password, username, User.ROLE_USER));
     }
 
     @Override
@@ -56,6 +60,16 @@ public class InMemoryUserService implements UserService {
     public boolean isUsernameAlreadyExist(String username) {
         for (User u : users) {
             if (u.username.equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isUserAdmin(String username) {
+        for (User u : users) {
+            if (u.username.equals(username) && u.role.equals(User.ROLE_ADMIN) ) {
                 return true;
             }
         }
