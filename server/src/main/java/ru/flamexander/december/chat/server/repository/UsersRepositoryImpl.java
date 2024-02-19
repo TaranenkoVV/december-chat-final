@@ -27,6 +27,7 @@ public class UsersRepositoryImpl implements UsersRepository {
             this.connection = connection;
             this.statement = connection.createStatement();
             createTable();
+            prepareStatements();
         } catch (SQLException e) {
             e.printStackTrace();
 
@@ -40,6 +41,16 @@ public class UsersRepositoryImpl implements UsersRepository {
             }
         }
     }
+
+    /**
+     * Подготовка всех PreparedStatement'ов
+     *
+     * @throws SQLException <code>SQLException</code>
+     */
+    public void prepareStatements() throws SQLException {
+        PreparedStatement psInsert = this.connection.prepareStatement("insert into students (name, score, created_at) values (?, ?, ?);");
+    }
+
 
     private void dropTable() throws SQLException {
         statement.executeUpdate("drop table if exists users;");

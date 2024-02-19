@@ -11,19 +11,16 @@ public class ServerApplication {
     public static void main(String[] args) {
         try {
             connect();
-
             Server server = new Server(8189, connection);
             server.start();
-
         } catch (Exception e) {
             e.printStackTrace();
-
         } finally {
             disconnect();
         }
     }
-
     public static void connect() throws SQLException {
+
         connection = DriverManager.getConnection("jdbc:postgresql://localhost:5432/postgres", "postgres", "postgres");
     }
 
