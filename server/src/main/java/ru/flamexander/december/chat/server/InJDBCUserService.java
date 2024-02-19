@@ -1,6 +1,7 @@
 package ru.flamexander.december.chat.server;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import ru.flamexander.december.chat.server.model.User;
@@ -102,6 +103,17 @@ public class InJDBCUserService implements UserService {
     public boolean isUserAdmin(String username) {
         for (User u : users) {
             if (u.getUsername().equals(username) && u.getRole().equals(ROLE_ADMIN)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isLoginBanned(String login) {
+        User user = usersRepository.selectById(login);
+        if (user != null) {
+            if (user.getBanexpirytime().isAfter(LocalDateTime.now())) {
                 return true;
             }
         }

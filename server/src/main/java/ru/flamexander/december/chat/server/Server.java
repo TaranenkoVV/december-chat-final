@@ -116,6 +116,7 @@ public class Server {
                 LocalDateTime currentTime = LocalDateTime.now();
                 LocalDateTime expiryTime = currentTime.plusMinutes(timeOff);
 
+                user.setBancount(user.getBancount() + 1);
                 user.setBanexpirytime(expiryTime);
                 int affectedRows = userService.updateUser(user);
                 if (affectedRows == 0) {
@@ -123,6 +124,7 @@ public class Server {
                 } else {
                     clientHandler.sendMessage("СЕРВЕР: администратор отключил вас из чата на " + timeOff + " минут.");
                     clientHandler.sendMessage("/ban");
+
                     clients.remove(clientHandler);
                     unsubscribe(clientHandler);
                 }

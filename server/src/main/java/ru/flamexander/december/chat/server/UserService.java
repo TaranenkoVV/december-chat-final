@@ -17,4 +17,6 @@ public interface UserService {
     boolean isUsernameAlreadyExist(String username);
 
     boolean isUserAdmin(String username);
+
+    boolean isLoginBanned(String login);
 }

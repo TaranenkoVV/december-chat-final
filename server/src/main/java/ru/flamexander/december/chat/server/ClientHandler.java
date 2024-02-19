@@ -215,6 +215,11 @@ public class ClientHandler {
             sendMessage("СЕРВЕР: указанное имя пользователя уже занято");
             return false;
         }
+        if (server.getUserService().isLoginBanned(login)) {
+            sendMessage("СЕРВЕР: Действует запрет для указанного login");
+            return false;
+        }
+
         server.getUserService().createNewUser(login, password, registrationUsername);
         username = registrationUsername;
         sendMessage("/authok " + username);

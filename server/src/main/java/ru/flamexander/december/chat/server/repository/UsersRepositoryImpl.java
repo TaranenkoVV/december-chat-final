@@ -155,12 +155,12 @@ public class UsersRepositoryImpl implements UsersRepository {
             statementUpd.setString(1, user.getPassword());
             statementUpd.setString(2, user.getUsername());
             statementUpd.setString(3, user.getRole());
-            statementUpd.setString(4, user.getLogin());
-            statementUpd.setObject(5, user.getBanexpirytime());
-            statementUpd.setBoolean(6, user.isPermanentban());
-            statementUpd.setInt(7, user.getBancount());
-            statementUpd.setObject(8, user.getLastactivetime());
+            statementUpd.setObject(4, user.getBanexpirytime());
+            statementUpd.setBoolean(5, user.isPermanentban());
+            statementUpd.setInt(6, user.getBancount());
+            statementUpd.setObject(7, user.getLastactivetime());
             statementUpd.setBoolean(8, user.isActive());
+            statementUpd.setString(9, user.getLogin());
             affectedRows = statementUpd.executeUpdate();
 
         } catch (SQLException e) {
