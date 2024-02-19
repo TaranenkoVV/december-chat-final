@@ -64,7 +64,12 @@ public class UsersRepositoryImpl implements UsersRepository {
                         "    password    varchar(255)," +
                         "    username    varchar(255)," +
                         "    role        varchar(255)," +
-                        "    CONSTRAINT student_pk PRIMARY KEY (login)" +
+                        "    bancount    int4 NULL," +
+                        "    banexpirytime timestamp NULL," +
+                        "    permanentban bool NULL," +
+                        "    lastactivetime timestamp NULL," +
+                        "    active bool NULL," +
+                        "    CONSTRAINT user_pk PRIMARY KEY (login)" +
                         ")");
     }
 
