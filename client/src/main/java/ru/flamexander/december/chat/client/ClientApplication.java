@@ -40,6 +40,11 @@ public class ClientApplication {
                             isMainActive = false;
                             continue;
                         }
+                        if (message.equals("/shutdown")) {
+                            isThreadActive = false;
+                            isMainActive = false;
+                            continue;
+                        }
                         System.out.println(message);
                     }
                 } catch (IOException e) {

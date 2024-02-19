@@ -14,6 +14,7 @@ public class InJDBCUserService implements UserService {
     private List<User> users;
     private UsersRepository usersRepository;
 
+
     public InJDBCUserService(Connection connection) throws SQLException {
 
         usersRepository = new UsersRepositoryImpl(connection);
@@ -40,6 +41,19 @@ public class InJDBCUserService implements UserService {
         this.users = new ArrayList<>(usersRepository.selectAll());
     }
 
+    public UsersRepository getUsersRepository() {
+        return usersRepository;
+    }
+
+    @Override
+    public User getUserByUserName(String userName) {
+        for (User u : users) {
+            if (u.getUsername().equals(userName)) {
+                return u;
+            }
+        }
+        return null;
+    }
 
     @Override
     public String getUsernameByLoginAndPassword(String login, String password) {
@@ -56,6 +70,12 @@ public class InJDBCUserService implements UserService {
         User newUser = new User(login, password, username, ROLE_USER);
         newUser = usersRepository.create(newUser);
         users.add(newUser);
+    }
+
+    @Override
+    public int updateUser(User user) {
+        int affectedRows = usersRepository.update(user);
+        return affectedRows;
     }
 
     @Override

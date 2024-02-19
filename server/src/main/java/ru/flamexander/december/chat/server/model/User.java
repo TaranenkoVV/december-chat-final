@@ -1,5 +1,8 @@
 package ru.flamexander.december.chat.server.model;
 
+import java.time.LocalDateTime;
+
+
 /**
  * Класс, отражающий структуру хранимых в таблице полей.
  */
@@ -9,6 +12,16 @@ public class User {
     private String password;
     private String username;
     private String role;
+
+    private LocalDateTime expiryTime;
+
+    public LocalDateTime getExpiryTime() {
+        return expiryTime;
+    }
+
+    public void setExpiryTime(LocalDateTime expiryTime) {
+        this.expiryTime = expiryTime;
+    }
 
     public String getLogin() {
         return login;

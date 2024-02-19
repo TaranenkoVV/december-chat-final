@@ -139,7 +139,7 @@ public class UsersRepositoryImpl implements UsersRepository {
      * Обновление записи в БД.
      *
      * @param user изменяемая запись
-     * @return количество обновленных записей
+     * @return boolean
      */
     @Override
     public int update(User user) {

@@ -5,8 +5,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import ru.flamexander.december.chat.server.model.User;
 
 public class Server {
 
@@ -14,6 +16,12 @@ public class Server {
     private Connection connection;
     private List<ClientHandler> clients;
     private UserService userService;
+
+    private boolean ServerActive;
+
+    public void setServerActive(boolean serverActive) {
+        ServerActive = serverActive;
+    }
 
     public UserService getUserService() {
         return userService;
@@ -29,11 +37,11 @@ public class Server {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.out.printf("Сервер запущен на порту %d. Ожидание подключения клиентов\n", port);
 
-            //userService = new InMemoryUserService();
             userService = new InJDBCUserService(connection);
 
             System.out.println("Запущен сервис для работы с пользователями");
-            while (true) {
+            ServerActive = true;
+            while (ServerActive) {
                 Socket socket = serverSocket.accept();
                 try {
                     new ClientHandler(this, socket);
@@ -60,15 +68,6 @@ public class Server {
     public synchronized void unsubscribe(ClientHandler clientHandler) {
         clients.remove(clientHandler);
         broadcastMessage("Отключился клиент " + clientHandler.getUsername());
-    }
-
-    public synchronized boolean isUserBusy(String username) {
-        for (ClientHandler c : clients) {
-            if (c.getUsername().equals(username)) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public synchronized void sendPrivateMessage(ClientHandler sender, String receiverUsername, String message) {
@@ -105,5 +104,79 @@ public class Server {
         }
         sender.sendMessage("Пользователь " + kickUsername + " не найден");
         return false;
+    }
+
+    public synchronized boolean banUser(ClientHandler sender, String banUserName, Integer timeOff) {
+        // бан пользователя
+        for (ClientHandler clientHandler : clients) {
+            if (clientHandler.getUsername().equals(banUserName)) {
+
+                User user = userService.getUserByUserName(banUserName);
+
+                LocalDateTime currentTime = LocalDateTime.now();
+                LocalDateTime expiryTime = currentTime.plusMinutes(timeOff);
+
+                // В секундах, то есть после 30 минут бездействия сессия истечет
+                session.setMaxInactiveInterval(30*60);
+
+                user.setExpiryTime(expiryTime);
+                int affectedRows = userService.updateUser(user);
+                if (affectedRows == 0) {
+                    return false;
+                } else {
+                    clientHandler.sendMessage("СЕРВЕР: администратор отключил вас из чата на " + timeOff + " минут.");
+                    clientHandler.sendMessage("/ban");
+                    //clients.remove(clientHandler);
+                    //unsubscribe(clientHandler);
+                }
+                return true;
+            }
+        }
+        sender.sendMessage("Пользователь " + banUserName + " не найден");
+        return false;
+    }
+
+    public synchronized boolean isUserBusy(String username) {
+        for (ClientHandler c : clients) {
+            if (c.getUsername().equals(username)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public synchronized boolean changeUserName(ClientHandler currentUser, String newUserName) {
+
+        String currentUserName = currentUser.getUsername();
+        User user = userService.getUserByUserName(currentUserName);
+        if (user == null) {
+            currentUser.sendMessage("СЕРВЕР: текущий пользователь с именем ' + currentUserName + ' не найден");
+            return false;
+        }
+        if (isUserBusy(newUserName)) {
+            currentUser.sendMessage("СЕРВЕР: имя уже занято: " + newUserName);
+            return false;
+        }
+
+        user.setUsername(newUserName);
+        int affectedRows = userService.updateUser(user);
+        if (affectedRows == 0) {
+            return false;
+        }
+
+        clients.remove(currentUser);
+        currentUser.setUsername(newUserName);
+        clients.add(currentUser);
+        return true;
+    }
+
+    public synchronized List<String> getActiveUsers() {
+        List<String> activeUsers = new ArrayList<>();
+        for (ClientHandler c : clients) {
+            //if (c.getUsername().active) {
+            activeUsers.add(c.getUsername());
+            //}
+        }
+        return activeUsers;
     }
 }
