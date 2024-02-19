@@ -5,6 +5,7 @@ import ru.flamexander.december.chat.server.model.User;
 
 public interface UsersRepository {
 
+
     /**
      * Создание записи в БД.
      *
@@ -21,12 +22,14 @@ public interface UsersRepository {
      */
     User selectById(String login);
 
+
     /**
      * Получение всех записей из БД.
      *
      * @return записи
      */
     List<User> selectAll();
+
 
     /**
      * Обновление записи в БД.
@@ -35,6 +38,7 @@ public interface UsersRepository {
      * @return количество обновленных записей
      */
     int update(User user);
+
 
     /**
      * Удаление указанных записей по login.

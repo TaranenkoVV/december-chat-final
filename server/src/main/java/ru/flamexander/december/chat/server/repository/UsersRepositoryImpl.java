@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import ru.flamexander.december.chat.server.model.User;
@@ -26,6 +27,7 @@ public class UsersRepositoryImpl implements UsersRepository {
             this.connection = connection;
             this.statement = connection.createStatement();
             createTable();
+            prepareStatements();
         } catch (SQLException e) {
             e.printStackTrace();
 
@@ -40,6 +42,16 @@ public class UsersRepositoryImpl implements UsersRepository {
         }
     }
 
+    /**
+     * Подготовка всех PreparedStatement'ов
+     *
+     * @throws SQLException <code>SQLException</code>
+     */
+    public void prepareStatements() throws SQLException {
+        PreparedStatement psInsert = this.connection.prepareStatement("insert into students (name, score, created_at) values (?, ?, ?);");
+    }
+
+
     private void dropTable() throws SQLException {
         statement.executeUpdate("drop table if exists users;");
     }
@@ -52,7 +64,12 @@ public class UsersRepositoryImpl implements UsersRepository {
                         "    password    varchar(255)," +
                         "    username    varchar(255)," +
                         "    role        varchar(255)," +
-                        "    CONSTRAINT student_pk PRIMARY KEY (login)" +
+                        "    bancount    int4 NULL," +
+                        "    banexpirytime timestamp NULL," +
+                        "    permanentban bool NULL," +
+                        "    lastactivetime timestamp NULL," +
+                        "    active bool NULL," +
+                        "    CONSTRAINT user_pk PRIMARY KEY (login)" +
                         ")");
     }
 
@@ -139,7 +156,7 @@ public class UsersRepositoryImpl implements UsersRepository {
      * Обновление записи в БД.
      *
      * @param user изменяемая запись
-     * @return количество обновленных записей
+     * @return boolean
      */
     @Override
     public int update(User user) {
@@ -148,13 +165,18 @@ public class UsersRepositoryImpl implements UsersRepository {
             return 0;
         }
         //update
-        String sqlUpd = "UPDATE public.user SET password=?, username=?, role=? WHERE login = ?;";
-        try (PreparedStatement statementUpd = connection.prepareStatement(sqlUpd)) {
+        String sqlUpd = "UPDATE public.user SET password=?, username=?, role=?, banexpirytime=?, permanentban=?, bancount=?, lastactivetime=?, active=? WHERE login = ?;";
 
+        try (PreparedStatement statementUpd = connection.prepareStatement(sqlUpd)) {
             statementUpd.setString(1, user.getPassword());
             statementUpd.setString(2, user.getUsername());
             statementUpd.setString(3, user.getRole());
-            statementUpd.setString(4, user.getLogin());
+            statementUpd.setObject(4, user.getBanexpirytime());
+            statementUpd.setBoolean(5, user.isPermanentban());
+            statementUpd.setInt(6, user.getBancount());
+            statementUpd.setObject(7, user.getLastactivetime());
+            statementUpd.setBoolean(8, user.isActive());
+            statementUpd.setString(9, user.getLogin());
             affectedRows = statementUpd.executeUpdate();
 
         } catch (SQLException e) {

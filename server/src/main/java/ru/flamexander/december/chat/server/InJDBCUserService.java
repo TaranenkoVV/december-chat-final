@@ -1,6 +1,7 @@
 package ru.flamexander.december.chat.server;
 
 import java.sql.*;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import ru.flamexander.december.chat.server.model.User;
@@ -13,6 +14,7 @@ public class InJDBCUserService implements UserService {
     static final String ROLE_USER = "USER";
     private List<User> users;
     private UsersRepository usersRepository;
+
 
     public InJDBCUserService(Connection connection) throws SQLException {
 
@@ -40,6 +42,19 @@ public class InJDBCUserService implements UserService {
         this.users = new ArrayList<>(usersRepository.selectAll());
     }
 
+    public UsersRepository getUsersRepository() {
+        return usersRepository;
+    }
+
+    @Override
+    public User getUserByUserName(String userName) {
+        for (User u : users) {
+            if (u.getUsername().equals(userName)) {
+                return u;
+            }
+        }
+        return null;
+    }
 
     @Override
     public String getUsernameByLoginAndPassword(String login, String password) {
@@ -56,6 +71,12 @@ public class InJDBCUserService implements UserService {
         User newUser = new User(login, password, username, ROLE_USER);
         newUser = usersRepository.create(newUser);
         users.add(newUser);
+    }
+
+    @Override
+    public int updateUser(User user) {
+        int affectedRows = usersRepository.update(user);
+        return affectedRows;
     }
 
     @Override
@@ -82,6 +103,17 @@ public class InJDBCUserService implements UserService {
     public boolean isUserAdmin(String username) {
         for (User u : users) {
             if (u.getUsername().equals(username) && u.getRole().equals(ROLE_ADMIN)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isLoginBanned(String login) {
+        User user = usersRepository.selectById(login);
+        if (user != null) {
+            if (user.getBanexpirytime().isAfter(LocalDateTime.now())) {
                 return true;
             }
         }

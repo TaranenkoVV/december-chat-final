@@ -4,6 +4,9 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
 
 public class ClientHandler {
 
@@ -17,12 +20,16 @@ public class ClientHandler {
         return username;
     }
 
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
     public ClientHandler(Server server, Socket socket) throws IOException {
         this.server = server;
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
-        new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 authentication();
                 listenUserChatMessages();
@@ -31,16 +38,19 @@ public class ClientHandler {
             } finally {
                 disconnect();
             }
-        }).start();
+        });
+        t.start();
     }
 
     private void listenUserChatMessages() throws IOException {
         while (true) {
             String message = in.readUTF();
             if (message.startsWith("/")) {
+
                 if (message.equals("/exit")) {
                     break;
                 }
+
                 if (message.startsWith("/w ")) {
                     // TODO homework chat part 1
                     String[] parts = new String[3];
@@ -52,6 +62,7 @@ public class ClientHandler {
                     }
                     continue;
                 }
+
                 if (message.startsWith("/kick ")) {
                     // TODO homework chat part 2
                     if (server.getUserService().isUserAdmin(username)) {
@@ -68,15 +79,71 @@ public class ClientHandler {
                     }
                     continue;
                 }
+
+                if (message.startsWith("/ban ")) {
+                    // бан пользователя
+                    if (server.getUserService().isUserAdmin(username)) {
+                        String[] parts = new String[3];
+                        parts = message.split(" ", 3);
+                        if (parts.length == 3) {
+                            String banUsername = parts[1].trim();
+                            Integer timeOff = Integer.parseInt(parts[2].trim());
+                            if (timeOff > 0 && server.banUser(this, banUsername, timeOff)) {
+                                server.broadcastMessage("Пользователь " + banUsername
+                                        + " отключен администратором на " + timeOff + " минут.");
+                            }
+                        }
+                    } else {
+                        sendMessage("СЕРВЕР: у вас недостаточно прав для отключения пользователей");
+                    }
+                    continue;
+                }
+
+                if (message.startsWith("/changenick ")) {
+                    // смена ника пользователя
+                    String[] parts = new String[2];
+                    parts = message.split(" ", 2);
+                    if (parts.length == 2) {
+                        String newUsername = parts[1].trim();
+                        String oldUsername = this.getUsername();
+                        if (server.changeUserName(this, newUsername)) {
+                            server.broadcastMessage(
+                                    "СЕРВЕР: Пользователь " + oldUsername + " изменил свой ник на: " + newUsername);
+                        }
+                    }
+                    continue;
+                }
+
+                if (message.startsWith("/activelist")) {
+                    // список активных пользователей
+                    List<String> activeUsers = server.getActiveUsers();
+                    sendMessage("СЕРВЕР: список активных клиентов " + activeUsers.toString());
+                    continue;
+                }
+
+                if (message.startsWith("/shutdown")) {
+                    // остановка сервера (для админа)
+                    if (server.getUserService().isUserAdmin(username)) {
+                        server.broadcastMessage("СЕРВЕР остановлен администратором");
+                        server.broadcastMessage("/shutdown");
+                        server.setServerActive(false);
+                        break;
+                    } else {
+                        sendMessage("СЕРВЕР: у вас недостаточно прав для остановки сервера");
+                    }
+                    continue;
+                }
+
+                server.broadcastMessage(username + ": " + message);
             }
-            server.broadcastMessage(username + ": " + message);
         }
     }
 
-
     public void sendMessage(String message) {
         try {
-            out.writeUTF(message);
+            String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
+            String messageWithTime = timeStamp + '\n' + message + '\n';
+            out.writeUTF(messageWithTime);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -148,6 +215,11 @@ public class ClientHandler {
             sendMessage("СЕРВЕР: указанное имя пользователя уже занято");
             return false;
         }
+        if (server.getUserService().isLoginBanned(login)) {
+            sendMessage("СЕРВЕР: Действует запрет для указанного login");
+            return false;
+        }
+
         server.getUserService().createNewUser(login, password, registrationUsername);
         username = registrationUsername;
         sendMessage("/authok " + username);
