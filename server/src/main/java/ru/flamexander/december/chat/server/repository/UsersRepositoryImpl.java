@@ -160,7 +160,7 @@ public class UsersRepositoryImpl implements UsersRepository {
             statementUpd.setBoolean(6, user.isPermanentban());
             statementUpd.setInt(7, user.getBancount());
             statementUpd.setObject(8, user.getLastactivetime());
-            statementUpd.setBoolean(8, user.isActive());
+            statementUpd.setBoolean(9, user.isActive());
             affectedRows = statementUpd.executeUpdate();
 
         } catch (SQLException e) {
