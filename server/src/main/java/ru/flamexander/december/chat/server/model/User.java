@@ -12,16 +12,12 @@ public class User {
     private String password;
     private String username;
     private String role;
+    private LocalDateTime banexpirytime;
+    private boolean permanentban;
+    private int bancount;
 
-    private LocalDateTime expiryTime;
-
-    public LocalDateTime getExpiryTime() {
-        return expiryTime;
-    }
-
-    public void setExpiryTime(LocalDateTime expiryTime) {
-        this.expiryTime = expiryTime;
-    }
+    private LocalDateTime lastactivetime;
+    private boolean active;
 
     public String getLogin() {
         return login;
@@ -55,11 +51,65 @@ public class User {
         this.role = role;
     }
 
+    public LocalDateTime getBanexpirytime() {
+        return banexpirytime;
+    }
+
+    public void setBanexpirytime(LocalDateTime banexpirytime) {
+        this.banexpirytime = banexpirytime;
+    }
+
+    public boolean isPermanentban() {
+        return permanentban;
+    }
+
+    public void setPermanentban(boolean permanentban) {
+        this.permanentban = permanentban;
+    }
+
+    public int getBancount() {
+        return bancount;
+    }
+
+    public void setBancount(int bancount) {
+        this.bancount = bancount;
+    }
+
+    public LocalDateTime getLastactivetime() {
+        return lastactivetime;
+    }
+
+    public void setLastactivetime(LocalDateTime lastactivetime) {
+        this.lastactivetime = lastactivetime;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
+
     public User(String login, String password, String username, String role) {
         this.login = login;
         this.password = password;
         this.username = username;
         this.role = role;
+    }
+
+    public User(String login, String password, String username, String role, LocalDateTime banexpirytime,
+            boolean permanentban, int bancount, LocalDateTime lastactivetime, boolean active) {
+        this.login = login;
+        this.password = password;
+        this.username = username;
+        this.role = role;
+        this.banexpirytime = banexpirytime;
+        this.permanentban = permanentban;
+        this.bancount = bancount;
+        this.lastactivetime = lastactivetime;
+        this.active = active;
     }
 
     @Override
@@ -69,6 +119,11 @@ public class User {
                 ", password='" + password + '\'' +
                 ", username='" + username + '\'' +
                 ", role='" + role + '\'' +
+                ", banexpirytime=" + banexpirytime +
+                ", permanentban=" + permanentban +
+                ", bancount=" + bancount +
+                ", lastactivetime=" + lastactivetime +
+                ", active=" + active +
                 '}';
     }
 }

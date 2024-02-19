@@ -29,7 +29,7 @@ public class ClientHandler {
         this.socket = socket;
         this.in = new DataInputStream(socket.getInputStream());
         this.out = new DataOutputStream(socket.getOutputStream());
-        new Thread(() -> {
+        Thread t = new Thread(() -> {
             try {
                 authentication();
                 listenUserChatMessages();
@@ -38,7 +38,8 @@ public class ClientHandler {
             } finally {
                 disconnect();
             }
-        }).start();
+        });
+        t.start();
     }
 
     private void listenUserChatMessages() throws IOException {
@@ -100,7 +101,6 @@ public class ClientHandler {
 
                 if (message.startsWith("/changenick ")) {
                     // смена ника пользователя
-
                     String[] parts = new String[2];
                     parts = message.split(" ", 2);
                     if (parts.length == 2) {
@@ -142,7 +142,7 @@ public class ClientHandler {
     public void sendMessage(String message) {
         try {
             String timeStamp = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss").format(Calendar.getInstance().getTime());
-            String messageWithTime = timeStamp + '\n' + message;
+            String messageWithTime = timeStamp + '\n' + message + '\n';
             out.writeUTF(messageWithTime);
         } catch (IOException e) {
             e.printStackTrace();

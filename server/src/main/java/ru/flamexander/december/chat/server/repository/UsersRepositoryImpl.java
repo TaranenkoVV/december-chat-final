@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import ru.flamexander.december.chat.server.model.User;
@@ -148,13 +149,18 @@ public class UsersRepositoryImpl implements UsersRepository {
             return 0;
         }
         //update
-        String sqlUpd = "UPDATE public.user SET password=?, username=?, role=? WHERE login = ?;";
-        try (PreparedStatement statementUpd = connection.prepareStatement(sqlUpd)) {
+        String sqlUpd = "UPDATE public.user SET password=?, username=?, role=?, banexpirytime=?, permanentban=?, bancount=?, lastactivetime=?, active=? WHERE login = ?;";
 
+        try (PreparedStatement statementUpd = connection.prepareStatement(sqlUpd)) {
             statementUpd.setString(1, user.getPassword());
             statementUpd.setString(2, user.getUsername());
             statementUpd.setString(3, user.getRole());
             statementUpd.setString(4, user.getLogin());
+            statementUpd.setObject(5, user.getBanexpirytime());
+            statementUpd.setBoolean(6, user.isPermanentban());
+            statementUpd.setInt(7, user.getBancount());
+            statementUpd.setObject(8, user.getLastactivetime());
+            statementUpd.setBoolean(8, user.isActive());
             affectedRows = statementUpd.executeUpdate();
 
         } catch (SQLException e) {

@@ -20,7 +20,7 @@ public class ClientApplication {
         ) {
             System.out.println("Подключились к серверу");
             Scanner scanner = new Scanner(System.in);
-            new Thread(() -> {
+            Thread t = new Thread(() -> {
                 try {
                     while (true) {
                         String message = in.readUTF();
@@ -33,16 +33,23 @@ public class ClientApplication {
                         }
                         System.out.println(message);
                     }
+                    boolean inter = false;
                     while (isThreadActive) {
-                        String message = in.readUTF();
-                        if (message.equals("/kickedout")) {
-                            isThreadActive = false;
-                            isMainActive = false;
-                            continue;
+                        if (Thread.currentThread().isInterrupted() || inter) {
+                            break;
                         }
-                        if (message.equals("/shutdown")) {
+                        String message = in.readUTF();
+
+                        if (Thread.currentThread().isInterrupted() || inter) {
+                            break;
+                        }
+
+                        if (message.equals("/kickedout")
+                                || message.equals("/ban")
+                                || message.equals("/shutdown")) {
                             isThreadActive = false;
                             isMainActive = false;
+                            Thread.currentThread().interrupt();
                             continue;
                         }
                         System.out.println(message);
@@ -50,7 +57,8 @@ public class ClientApplication {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }).start();
+            });
+            t.start();
 
             isMainActive = true;
             while (isMainActive) {

@@ -17,10 +17,10 @@ public class Server {
     private List<ClientHandler> clients;
     private UserService userService;
 
-    private boolean ServerActive;
+    private boolean serverActive;
 
     public void setServerActive(boolean serverActive) {
-        ServerActive = serverActive;
+        this.serverActive = serverActive;
     }
 
     public UserService getUserService() {
@@ -40,8 +40,8 @@ public class Server {
             userService = new InJDBCUserService(connection);
 
             System.out.println("Запущен сервис для работы с пользователями");
-            ServerActive = true;
-            while (ServerActive) {
+            serverActive = true;
+            while (serverActive) {
                 Socket socket = serverSocket.accept();
                 try {
                     new ClientHandler(this, socket);
@@ -116,18 +116,15 @@ public class Server {
                 LocalDateTime currentTime = LocalDateTime.now();
                 LocalDateTime expiryTime = currentTime.plusMinutes(timeOff);
 
-                // В секундах, то есть после 30 минут бездействия сессия истечет
-                session.setMaxInactiveInterval(30*60);
-
-                user.setExpiryTime(expiryTime);
+                user.setBanexpirytime(expiryTime);
                 int affectedRows = userService.updateUser(user);
                 if (affectedRows == 0) {
                     return false;
                 } else {
                     clientHandler.sendMessage("СЕРВЕР: администратор отключил вас из чата на " + timeOff + " минут.");
                     clientHandler.sendMessage("/ban");
-                    //clients.remove(clientHandler);
-                    //unsubscribe(clientHandler);
+                    clients.remove(clientHandler);
+                    unsubscribe(clientHandler);
                 }
                 return true;
             }
